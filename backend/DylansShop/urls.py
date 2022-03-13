@@ -21,6 +21,14 @@ from django.conf.urls.static import static
 from . import views
 from .forms import *
 from .forms import UserSignupForm, UserLoginForm
+from django.urls import path, include
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'products', views.ProductViewSet)
+router.register(r'basket', views.BasketViewSet)
+router.register(r'orders', views.OrderViewSet)
+router.register(r'users', views.APIUserViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,5 +42,10 @@ urlpatterns = [
     path('removeitem/<int:sbi>', views.remove_item, name="removeitem"),
     path('order/', views.order, name="order"),
     path('orderhistory/', views.previous_orders, name="order_history"),
-
+    path('api/', include(router.urls)),
+    path('apiregister/', views.UserRegistrationAPIView.as_view(), name="api_register"),
+    path('apiadd/', views.AddBasketItemAPIView.as_view(), name="api_add_to_basket"),
+    path('apiremove/', views.RemoveBasketItemAPIView.as_view(), name="api_remove_from_basket"),
+    path('apicheckout/', views.CheckoutAPIView.as_view(), name="api_checkout"),
+    
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

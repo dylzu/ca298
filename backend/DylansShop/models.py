@@ -18,11 +18,14 @@ class Basket(models.Model):
     user_id = models.ForeignKey(APIUser, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
 
-class BasketItems(models.Model):
+class BasketItem(models.Model):
     id = models.IntegerField(primary_key=True)
     basket_id = models.ForeignKey(Basket, on_delete=models.CASCADE)
     product_id = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
+
+    def product_name(self):
+        return self.product_id.name
 
     def price(self):
         return self.product_id.price * self.quantity

@@ -6,6 +6,12 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView
 from django.contrib.auth import login, logout
 from .forms import *
+from django.shortcuts import render
+from rest_framework import viewsets
+from .models import *
+from .serializers import *
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework import generics
 
 # Create your views here.
 def index(request):
@@ -46,9 +52,9 @@ def add_to_basket(request, prodid):
         Basket.objects.create(user_id = user)
         basket = Basket.objects.filter(user_id=user, is_active=True).first()
     product = Product.objects.get(id=prodid)
-    sbi = BasketItems.objects.filter(basket_id=basket, product_id = product).first()
+    sbi = BasketItem.objects.filter(basket_id=basket, product_id = product).first()
     if sbi is None:
-        sbi = BasketItems(basket_id=basket, product_id = product)
+        sbi = BasketItem(basket_id=basket, product_id = product)
         sbi.save()
     else:
         sbi.quantity = sbi.quantity+1
@@ -62,7 +68,7 @@ def show_basket(request):
     if basket is None:
         return render(request, 'basket.html', {'empty':True})
     else:
-        sbi = BasketItems.objects.filter(basket_id=basket)
+        sbi = BasketItem.objects.filter(basket_id=basket)
         if sbi.exists():
             return render(request, 'basket.html', {'basket':basket, 'sbi':sbi})
         else:
@@ -70,7 +76,7 @@ def show_basket(request):
 
 @login_required
 def remove_item(request, sbi):
-    basketitem = BasketItems.objects.get(id=sbi)
+    basketitem = BasketItem.objects.get(id=sbi)
     if basketitem is None:
         return redirect("/basket")
     else:
@@ -87,7 +93,7 @@ def order(request):
     basket = Basket.objects.filter(user_id=user, is_active=True).first()
     if basket is None:
         return redirect("/")
-    sbi = BasketItems.objects.filter(basket_id=basket)
+    sbi = BasketItem.objects.filter(basket_id=basket)
     if not sbi.exists():
         return redirect("/")
     if request.method == "POST":
@@ -116,5 +122,54 @@ def previous_orders(request):
     orders = Order.objects.filter(user_id=user)
     return render(request, 'previous_orders.html', {'orders':orders})
 
+class ProductViewSet(viewsets.ModelViewSet):
+	queryset = Product.objects.all()
+	serializer_class = ProductSerializer
 
+class BasketViewSet(viewsets.ModelViewSet):
+  serializer_class = BasketSerializer
+  queryset = Basket.objects.all()
+  permission_classes = [IsAuthenticated]
 
+  def get_queryset(self):
+      user = self.request.user # get the current user
+      if user.is_superuser:
+          return Basket.objects.all() # return all the baskets if a superuser requests
+      else:
+          # For normal users, only return the current active basket
+          shopping_basket = Basket.objects.filter(user_id=user, is_active=True)
+          return shopping_basket
+
+class OrderViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    queryset = Order.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user # get the current user
+        if user.is_superuser:
+            return Order.objects.all() # return all the baskets if a superuser requests
+        else:
+            # For normal users, only return the current active basket
+            orders = Order.objects.filter(user_id=user)
+            return orders
+
+class APIUserViewSet(viewsets.ModelViewSet):
+    queryset = APIUser.objects.all()
+    serializer_class = APIUserSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class UserRegistrationAPIView(generics.CreateAPIView):
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [AllowAny] #No login is needed to access this route
+    queryset = queryset = APIUser.objects.all()
+
+class AddBasketItemAPIView(generics.CreateAPIView):
+    serializer_class = AddBasketItemSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = BasketItem.objects.all()
+
+class CheckoutAPIView(generics.CreateAPIView):
+    serializer_class = CheckoutSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Order.objects.all()
