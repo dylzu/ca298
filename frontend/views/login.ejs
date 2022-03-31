@@ -1,0 +1,58 @@
+<html>
+    <head>
+			<title>Login Page</title>
+    </head>
+    <body>
+        <%- include('header') -%>
+        <h1>Login</h1>
+        <form id="login-form">
+            <label for="username-input">Username</label>
+            <input type="text" name="username-input" id="username" placeholder="Your username" required>
+            <label for="password-input">Password</label>
+            <input type="password" id="password" name="password-input" placeholder="Your password" required>
+            <button type="submit">Login</button>
+        </form>
+        <a href="/register" id="auth-link">Register</a>
+				<script>
+					// your script goes here
+                    /*
+                    NOTE: 
+                    uname and pass are the values the user entered
+
+                    e.g. 
+	                    uname = document.getElementById("...").value;
+                    */
+                    let form = document.getElementById('login-form');
+                    // add an event listener to the form
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        // get the username and password
+                        let username = document.getElementById('username').value;
+                        let password = document.getElementById('password').value;
+
+                    fetch("http://127.0.0.1:8000/api/token/", {
+		                method: 'POST',
+		                headers: {
+                        'Accept': 'application/json',
+		                'Content-Type': 'application/json'
+		                },
+		                body: JSON.stringify({username: username, password: password})
+	                }).then(response=>response.json())
+	                .then((data)=>{
+                        console.log(data); // still log it so we can debug
+                        if('access' in data){
+			                // successful login
+                            let accessToken = data['access'];
+                            let refreshToken = data['refresh'];
+                            localStorage.setItem("access", accessToken);
+                            localStorage.setItem("refresh", refreshToken);
+                            window.location.href = "/"; // the "/" is the homepage for node http://127.0.0.1:3000
+                        }
+                        else{
+                            alert("username or password invalid");
+                        }
+                    });
+                });
+				</script>
+    </body>
+</html>

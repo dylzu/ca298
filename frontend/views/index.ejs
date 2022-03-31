@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <%- include('header') -%>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <a href="/login" id="auth-link">Login/Register</a>
+  <script>
+    let req = "http://127.0.0.1:8000/api/products/"
+    fetch(req) // make a request to this endpoint
+			.then(response => response.json()) // with our response, get the json data returned
+			.then(data => console.log(data)); // print the json data
+  </script> 
+  <script>
+    // check if there is an access key and a refresh key in local storage and if so, set the auth link to be logout and clear the access and refresh key and change the login redirect to the home page
+    if(localStorage.getItem("access") && localStorage.getItem("refresh")){
+      document.getElementById("auth-link").innerHTML = "Logout";
+      document.getElementById("auth-link").onclick = function(){
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+      document.getElementById("auth-link").href = "/";
+      }
+    }
+  </script>
+  <br>
+  <br>
+  <br>
+  <%- include('footer') -%>
+  </body>
+</html>
