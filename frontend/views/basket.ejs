@@ -1,0 +1,125 @@
+<%- include('header') -%>
+<title>Your Basket</title>
+<body>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Image</th> 
+            <th>Amount</th>
+            <th>Total Price</th>
+            <th>Remove Product</th>
+        </tr>
+    </thead>
+    <tbody id="productList"></tbody>
+</table>
+
+<form id="addressform">
+	<div class="form-row align-items-center">
+	  <div class="col-sm-3 my-1 mx-auto">
+		<label class="sr-only" for="inlineFormInputName">Home Address</label>
+		<input type="text" class="form-control" id="address" placeholder="Enter Address" required>
+	  </div>
+	  
+	  <div class="col-sm-3 my-1 mx-auto text-center">
+		<button type="submit" class="btn-primary">Checkout</button>
+	  </div>
+	</div>
+  </form>
+
+<script>
+    function removeProduct(prodId) {
+        fetch("http://127.0.0.1:8000/apiremove/", {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem("access")
+            },
+            body: JSON.stringify({"product_id": parseInt(prodId)})
+        })
+        window.location.reload();
+    }
+
+    let list = document.getElementById("productList");
+    let req = "http://127.0.0.1:8000/api/basket/";
+    fetch(req, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem("access")
+        },
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            let items = data[0]["items"];
+            items.forEach(element => {
+                let productID = element['product_id'];
+                let quantity = element['quantity'];
+                fetch('http://127.0.0.1:8000/api/products/' + productID + '/')
+                    .then(resp => resp.json())
+                    .then(data => {
+                        console.log(data);
+                        if ('detail' in data)
+						{
+                            alert("error")
+                        }
+                        else
+						{
+                            let name = data['name'];
+							let image = data['image'];
+                            let desc = data['description'];
+                            let price = data['price'];
+                            let row = document.createElement("tr");
+
+                            total_price = parseFloat(price) * parseFloat(quantity);
+                            total_price = total_price.toString();
+
+                            row.innerHTML = "<td>" + name + " - " + desc + "</td>";
+                            row.innerHTML = row.innerHTML + '<td><img src="' + image + '" width="25%" /> </td>';
+                            row.innerHTML = row.innerHTML + '<td>' + quantity + '</td>';
+                            row.innerHTML = row.innerHTML + '<td>€' + total_price + '</td>';
+                            row.innerHTML = row.innerHTML + '<td><button class="btn-primary" onclick="removeProduct(' + productID + ')">Remove</button></td>';
+                            list.appendChild(row);
+                        }
+                    });
+            });
+        });
+
+		function addressValidator(event) {
+			event.preventDefault();
+			let address = document.getElementById("address").value;
+			
+			if (address == "") 
+			{
+				alert("The address field cannot be empty");
+			} 
+			else 
+			{
+				fetch("http://127.0.0.1:8000/apicheckout/", {
+					method: 'POST',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer ' + localStorage.getItem("access")
+					},
+					body: JSON.stringify({basket_id: 30, shipping_addr: address})
+				}).then(response=>response.json())
+				.then(data=>{
+					console.log(data);
+
+					window.location.href = "/order-confirmation";
+				});
+				
+			}
+		}
+		let address = document.getElementById("addressform");
+		address.addEventListener('submit', addressValidator);
+
+</script>
+
+</body>
+<%- include('footer') -%>

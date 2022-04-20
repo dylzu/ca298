@@ -1,0 +1,42 @@
+<%- include('header') -%>
+<table>
+    <thead>
+        <tr>
+            <th>Order ID:</th>
+            <th>Ordered on:</th> 
+            <th>Shipping to:</th>
+            <th>Total price:</th>
+        </tr>
+    </thead>
+
+</table>
+<script>
+    let list = document.getElementById("orderlist");
+    let req = "http://127.0.0.1:8000/api/basket/30";
+    accessToken = localStorage.getItem("access");
+    fetch(req, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem("access")
+        },
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            data.forEach(element => {
+                let id = element["id"];
+                let date_ordered = element["date_ordered"].slice(0, 10);
+                let shipping_addr = element["shipping_addr"];
+                let total_price = element["total_price"];
+                let row = document.createElement("tr");
+                row.innerHTML = "<td>" + id + "</td>";
+                row.innerHTML = row.innerHTML + '<td>' + date_ordered + '</td>';
+                row.innerHTML = row.innerHTML + '<td>' + shipping_addr + '</td>';
+                row.innerHTML = row.innerHTML + '<td>' + total_price + '</td>';
+                list.appendChild(row);
+            });
+        });
+</script>
+<%- include('footer') -%>

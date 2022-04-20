@@ -1,5 +1,6 @@
 <html>
     <head>
+        <%- include('header') -%>
 			<title>Register Page</title>
     </head>
     <body>
@@ -33,10 +34,11 @@
                             body: JSON.stringify({username: username, password: password, email: email})
                         }).then(response=>response.json())
                         .then((data)=>{
-                            console.log(data); // still log it so we can debug
+                            console.log(data);
                             window.location.href = "/";
                         });
                     });
 				</script>
+    <%- include('footer') -%>
     </body>
 </html>

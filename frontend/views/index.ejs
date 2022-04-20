@@ -1,27 +1,58 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= title %></title>
+    <title> Dylans Shop</title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
     <%- include('header') -%>
-    <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
-    <a href="/login" id="auth-link">Login/Register</a>
   <script>
     let req = "http://127.0.0.1:8000/api/products/"
     fetch(req) // make a request to this endpoint
 			.then(response => response.json()) // with our response, get the json data returned
 			.then(data => console.log(data)); // print the json data
   </script> 
+
+<br>
+<br>
+<br>
+<br>
+
+<ul id="productList">
+
+</ul>
+<script>
+  fetch("http://127.0.0.1:8000/api/products")
+        .then(resp => resp.json())
+        .then(data => {
+          data.forEach(element => {
+              console.log(element);
+              let tmpLi = document.createElement("li");
+              let link = document.createElement("a");
+              link.innerHTML = element['name'];
+              let productStr = "/productindividual?id=" + element['id'];
+              tmpLi.appendChild(link);
+              console.log(productStr);
+
+              link.href = productStr;
+              console.log(tmpLi);
+              let image = document.createElement("img");
+              image.src = element["image"];
+              image.style.width = "300px";
+              image.style.height = "300px";
+              tmpLi.appendChild(image);
+              document.getElementById("productList").appendChild(tmpLi)
+            });
+        })
+</script>
+
   <script>
-    // check if there is an access key and a refresh key in local storage and if so, set the auth link to be logout and clear the access and refresh key and change the login redirect to the home page
     if(localStorage.getItem("access") && localStorage.getItem("refresh")){
       document.getElementById("auth-link").innerHTML = "Logout";
       document.getElementById("auth-link").onclick = function(){
-        localStorage.removeItem("access");
-        localStorage.removeItem("refresh");
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
       document.getElementById("auth-link").href = "/";
       }
     }
